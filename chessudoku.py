@@ -97,8 +97,6 @@ class ChessSudokuBoard:
         """JSON 문자열에서 보드 상태 복원"""
         return cls.from_dict(json.loads(json_str))
 
-
-
     def get_king_moves(self, row, col):
         """킹의 이동 가능한 위치(주변 8방향) 반환"""
         moves = [
@@ -243,14 +241,12 @@ class ChessSudokuBoard:
                 
         return True
 
-
     def get_piece_moves(self, row, col):
         """특정 위치의 기물이 이동 가능한 모든 위치 반환"""
         piece = self.board[row][col]
         if piece == self.pieces['knight']:
             return self.get_knight_moves(row, col)
         return []
-
 
     def place_number(self, row, col, num):
         """숫자를 보드에 배치"""
@@ -279,7 +275,6 @@ class ChessSudokuBoard:
             return True
         return False
     
-
     def print_board(self):
         """보드 출력"""
 
@@ -368,7 +363,6 @@ def solve_sudoku(board):
                     board.king_adjacent_numbers[king_pos].discard(num)
     return False
 
-
 def create_puzzle(board, difficulty='medium'):
     """완성된 스도쿠에서 숫자를 제거하여 퍼즐 생성"""
     import random
@@ -422,7 +416,6 @@ def create_puzzle(board, difficulty='medium'):
             
     return puzzle_board, removed_cells
 
-
 def count_solutions(board, max_count=1):
     """주어진 보드의 해답 개수를 세는 함수 (max_count까지만)"""
     solutions = [0]
@@ -465,7 +458,7 @@ def count_solutions(board, max_count=1):
     solve_counter(board)
     return solutions[0]
 
-def generate_puzzle(difficulty='medium', piece_config=None):
+def generate_puzzle(*, difficulty='medium', piece_config=None):
     """체스 스도쿠 퍼즐 생성 함수"""
     board = ChessSudokuBoard()
     

@@ -1,13 +1,13 @@
 from flask import Flask, jsonify, request
 from firebase_admin import credentials, firestore, initialize_app
 import json
-from chessudoku import ChessSudokuBoard, solve_sudoku, create_puzzle
+from chessudoku import ChessSudokuBoard, solve_sudoku, create_puzzle, generate_puzzle
 
 # Flask 앱 초기화
 app = Flask(__name__)
 
 # Firebase 초기화
-cred = credentials.Certificate('C:\Users\rwt12\Documents\python_projects\projects\chessudoku\chessudoku-c1699-firebase-adminsdk-fbsvc-16a948f726.json')
+cred = credentials.Certificate(r'C:\Users\rwt12\Documents\python_projects\projects\chessudoku\chessudoku-c1699-firebase-adminsdk-fbsvc-16a948f726.json')
 initialize_app(cred)
 db = firestore.client()
 
@@ -36,15 +36,31 @@ def board_to_json(board):
         result['board'].append(row)
     return result
 
+@app.route('/')
+def hello():
+    return 'Hello, Welcome ChesSudoku!'
+
 @app.route('/generate', methods=['POST'])
-def generate_puzzle():
+def generate_puzzle_endpoint():
     try:
         data = request.get_json()
         difficulty = data.get('difficulty', 'medium')
-        piece_config = data.get('pieces', None)
+        pieces = data.get('pieces', None)
+        
+        # pieces 데이터 형식 변환: 리스트를 튜플로 변환
+        if pieces:
+            formatted_pieces = []
+            for piece in pieces:
+                # piece가 리스트 형태로 오므로 튜플로 변환
+                if isinstance(piece, list):
+                    formatted_pieces.append(tuple(piece))
+                elif isinstance(piece, dict):
+                    pos = piece['position']
+                    formatted_pieces.append((piece['type'], pos[0], pos[1]))
+            pieces = formatted_pieces
         
         # 퍼즐 생성
-        result = generate_puzzle(difficulty, piece_config)
+        result = generate_puzzle(difficulty=difficulty, piece_config=pieces)
         
         # Firebase에 저장할 데이터 준비
         puzzle_data = {
@@ -53,18 +69,20 @@ def generate_puzzle():
             'removed_cells': result['removed_cells']
         }
         
-        # Firebase에 저장
-        doc_ref = db.collection('puzzles').document()
-        doc_ref.set({
-            'puzzle_data': puzzle_data,
-            'difficulty': difficulty,
-            'created_at': firestore.SERVER_TIMESTAMP
-        })
+        # # Firebase에 저장
+        # doc_ref = db.collection('puzzles').document()
+        # doc_ref.set({
+        #     'puzzle_data': puzzle_data,
+        #     'difficulty': difficulty,
+        #     'created_at': firestore.SERVER_TIMESTAMP
+        # })
         
-        puzzle_data['puzzle_id'] = doc_ref.id
+        # puzzle_data['puzzle_id'] = doc_ref.id
         return jsonify(puzzle_data)
         
     except Exception as e:
+        import traceback
+        print(traceback.format_exc())  # 서버 콘솔에 상세 에러 출력
         return jsonify({'error': str(e)}), 500
 
 @app.route('/puzzles/<puzzle_id>', methods=['GET'])
