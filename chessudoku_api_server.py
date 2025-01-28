@@ -62,11 +62,14 @@ def generate_puzzle_endpoint():
         # 퍼즐 생성
         result = generate_puzzle(difficulty=difficulty, piece_config=pieces)
         
-        # Firebase에 저장할 데이터 준비
         puzzle_data = {
-            'puzzle': result['puzzle'].to_dict(),
-            'solution': result['solution'].to_dict(),
-            'removed_cells': result['removed_cells']
+            'puzzle_data': {  
+                'puzzle': result['puzzle'].to_dict(),
+                'solution': result['solution'].to_dict(),
+                'removed_cells': result['removed_cells']
+            },
+            'puzzle_id': 'some_unique_id',
+            'difficulty': difficulty
         }
         
         # # Firebase에 저장
@@ -101,4 +104,4 @@ def get_puzzle(puzzle_id):
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
